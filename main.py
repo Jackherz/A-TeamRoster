@@ -150,7 +150,7 @@ def show_staff_management():
                 index=["Manager", "Senior Staff", "Junior Staff", "Supported Employee", "Admin Assistant"].index(staff['role'])
             )
         with col3:
-            if st.button("Update Role", key=f"update_{staff['id']}"):
+            if st.button("Update Role", key=f"update_{staff['id']}_{idx}"):
                 utils.update_staff_role(staff['id'], new_role)
                 st.success(f"Updated role for {staff['name']}")
                 st.rerun()
