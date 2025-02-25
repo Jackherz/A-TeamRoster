@@ -5,8 +5,8 @@ import utils
 import os
 
 # Initialize session state
-if 'current_week' not in st.session_state:
-    st.session_state.current_week = datetime.now()
+if 'current_date' not in st.session_state:
+    st.session_state.current_date = datetime.now()
 
 # Page configuration
 st.set_page_config(
@@ -30,53 +30,56 @@ def main():
 
     # Sidebar navigation
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", ["Weekly Schedule", "Staff Management"])
+    page = st.sidebar.radio("Go to", ["Daily Schedule", "Staff Management"])
 
-    if page == "Weekly Schedule":
-        show_weekly_schedule()
+    if page == "Daily Schedule":
+        show_daily_schedule()
     else:
         show_staff_management()
 
-def show_weekly_schedule():
-    # Week navigation
+def show_daily_schedule():
+    # Date navigation
     col1, col2, col3 = st.columns([1,3,1])
     with col1:
-        if st.button("← Previous Week"):
-            st.session_state.current_week -= timedelta(days=7)
+        if st.button("← Previous Day"):
+            st.session_state.current_date -= timedelta(days=1)
     with col2:
-        st.header(f"Week of {st.session_state.current_week.strftime('%B %d, %Y')}")
+        st.header(f"Schedule for {st.session_state.current_date.strftime('%B %d, %Y')}")
     with col3:
-        if st.button("Next Week →"):
-            st.session_state.current_week += timedelta(days=7)
+        if st.button("Next Day →"):
+            st.session_state.current_date += timedelta(days=1)
 
-    # Get week dates
-    week_dates = utils.get_week_dates(st.session_state.current_week)
+    # Load data
     staff_df = pd.read_csv('data/staff.csv')
     shifts_df = pd.read_csv('data/shifts.csv')
 
-    # Schedule display
-    st.subheader("Weekly Schedule")
+    # Define locations in order
+    locations = [
+        "Reception desk 1",
+        "Reception desk 2",
+        "A-Team Office",
+        "Morning Tea break",
+        "Lunch",
+        "Reception backup"
+    ]
+
+    # Get current date's shifts
+    current_date_str = st.session_state.current_date.strftime('%Y-%m-%d')
+    day_shifts = shifts_df[shifts_df['date'] == current_date_str]
 
     # Create schedule table
-    schedule_table = []
-    for staff in staff_df.itertuples():
-        row = [staff.name]
-        for date in week_dates:
-            date_str = date.strftime('%Y-%m-%d')
-            shift = shifts_df[(shifts_df['staff_id'] == staff.id) & 
-                            (shifts_df['date'] == date_str)]
-            if not shift.empty:
-                row.append(f"{shift['shift_type'].iloc[0]} ({shift['location'].iloc[0]})")
-            else:
-                row.append("")
-        schedule_table.append(row)
+    schedule_data = []
+    for location in locations:
+        row = {'Location': location}
+        for staff in staff_df.itertuples():
+            shift = day_shifts[(day_shifts['staff_id'] == staff.id) & 
+                             (day_shifts['location'] == location)]
+            row[staff.name] = shift['shift_type'].iloc[0] if not shift.empty else ""
+        schedule_data.append(row)
 
     # Display schedule
-    df_schedule = pd.DataFrame(
-        schedule_table,
-        columns=['Staff'] + [d.strftime('%a %m/%d') for d in week_dates]
-    )
-    st.dataframe(df_schedule, use_container_width=True)
+    schedule_df = pd.DataFrame(schedule_data)
+    st.dataframe(schedule_df, use_container_width=True)
 
     # Add new shift
     st.subheader("Add Shift")
@@ -88,7 +91,7 @@ def show_weekly_schedule():
                                         key="staff_select")
         with col2:
             selected_date = st.date_input("Select Date", 
-                                        value=st.session_state.current_week,
+                                        value=st.session_state.current_date,
                                         key="date_select")
         with col3:
             shift_type = st.selectbox("Shift Type", 
@@ -96,9 +99,7 @@ def show_weekly_schedule():
                                     key="shift_select")
         with col4:
             location = st.selectbox("Location",
-                                  options=["Reception desk 1", "Reception desk 2", 
-                                          "A-Team Office", "Morning Tea break",
-                                          "Lunch", "Reception backup"],
+                                  options=locations,
                                   key="location_select")
 
         if st.form_submit_button("Add Shift"):
@@ -109,7 +110,7 @@ def show_weekly_schedule():
 
     # Export button
     if st.button("Export Schedule"):
-        utils.export_schedule(week_dates)
+        utils.export_schedule([st.session_state.current_date])
         st.success("Schedule exported successfully!")
 
 def show_staff_management():

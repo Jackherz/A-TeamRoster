@@ -1,1 +1,2 @@
-date,staff_id,shift_type
+date,staff_id,shift_type,location
+2025-02-25,2,Morning,Reception desk 1
