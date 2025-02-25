@@ -72,6 +72,25 @@ def show_weekly_schedule():
         "Reception backup"
     ]
 
+    # Add copy week functionality
+    st.divider()
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        target_monday = st.date_input("Copy this week's schedule to week starting",
+                                    value=monday + timedelta(days=7),
+                                    key="copy_week_date")
+        # Adjust to Monday if selected date isn't a Monday
+        if target_monday.weekday() != 0:
+            target_monday = target_monday - timedelta(days=target_monday.weekday())
+    with col2:
+        if st.button("Copy Week Schedule"):
+            if utils.copy_week_shifts(monday, target_monday):
+                st.success(f"Copied week schedule to week starting {target_monday.strftime('%Y-%m-%d')}")
+                st.rerun()
+            else:
+                st.warning("No shifts to copy for this week")
+    
+    st.divider()
     # Create tabs for each day
     tabs = st.tabs([date.strftime("%A %d/%m") for date in week_dates])
     
