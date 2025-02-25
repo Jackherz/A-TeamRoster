@@ -117,9 +117,9 @@ def show_staff_management():
         with col2:
             new_role = st.selectbox(
                 "Role",
-                options=["Manager", "Senior Staff", "Junior Staff", "Supported Employee"],
+                options=["Manager", "Senior Staff", "Junior Staff", "Supported Employee", "Admin Assistant"],
                 key=f"role_{staff['id']}",
-                index=["Manager", "Senior Staff", "Junior Staff", "Supported Employee"].index(staff['role'])
+                index=["Manager", "Senior Staff", "Junior Staff", "Supported Employee", "Admin Assistant"].index(staff['role'])
             )
         with col3:
             if st.button("Update Role", key=f"update_{staff['id']}"):
@@ -140,7 +140,7 @@ def show_staff_management():
         with col1:
             new_name = st.text_input("Name")
         with col2:
-            new_role = st.selectbox("Role", ["Manager", "Senior Staff", "Junior Staff", "Supported Employee"])
+            new_role = st.selectbox("Role", ["Manager", "Senior Staff", "Junior Staff", "Supported Employee", "Admin Assistant"])
 
         if st.form_submit_button("Add Staff"):
             utils.add_staff(new_name, new_role)
