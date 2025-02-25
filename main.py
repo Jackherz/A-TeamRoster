@@ -117,7 +117,7 @@ def show_staff_management():
         with col1:
             new_name = st.text_input("Name")
         with col2:
-            new_role = st.selectbox("Role", ["Manager", "Senior Staff", "Junior Staff"])
+            new_role = st.selectbox("Role", ["Manager", "Senior Staff", "Junior Staff", "Supported Employee"])
         
         if st.form_submit_button("Add Staff"):
             utils.add_staff(new_name, new_role)
