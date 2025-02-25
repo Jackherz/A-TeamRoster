@@ -155,7 +155,7 @@ def show_staff_management():
                 st.success(f"Updated role for {staff['name']}")
                 st.rerun()
         with col4:
-            if st.button("🗑️ Remove", key=f"remove_{staff['id']}", type="secondary"):
+            if st.button("🗑️ Remove", key=f"remove_{staff['id']}_{idx}", type="secondary"):
                 utils.remove_staff(staff['id'])
                 st.success(f"Removed {staff['name']}")
                 st.rerun()
