@@ -37,7 +37,7 @@ def remove_staff(staff_id):
     shifts_df = shifts_df[shifts_df['staff_id'] != staff_id]
     shifts_df.to_csv('data/shifts.csv', index=False)
 
-def add_shift(staff_id, date, shift_type):
+def add_shift(staff_id, date, shift_type, location):
     """Add a new shift to the shifts.csv file."""
     shifts_df = pd.read_csv('data/shifts.csv')
 
@@ -56,7 +56,8 @@ def add_shift(staff_id, date, shift_type):
     new_shift = pd.DataFrame([{
         'date': date_str,
         'staff_id': staff_id,
-        'shift_type': shift_type
+        'shift_type': shift_type,
+        'location': location
     }])
     shifts_df = pd.concat([shifts_df, new_shift], ignore_index=True)
     shifts_df.to_csv('data/shifts.csv', index=False)
@@ -74,8 +75,11 @@ def export_schedule(week_dates):
         for date in week_dates:
             date_str = date.strftime('%Y-%m-%d')
             shift = shifts_df[(shifts_df['staff_id'] == staff.id) & 
-                            (shifts_df['date'] == date_str)]['shift_type'].values
-            row[date_str] = shift[0] if len(shift) > 0 else "Off"
+                            (shifts_df['date'] == date_str)]
+            if not shift.empty:
+                row[date_str] = f"{shift['shift_type'].iloc[0]} ({shift['location'].iloc[0]})"
+            else:
+                row[date_str] = "Off"
         export_data.append(row)
 
     export_df = pd.DataFrame(export_data)

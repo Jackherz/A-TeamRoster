@@ -23,7 +23,7 @@ if not os.path.exists('data/staff.csv'):
     pd.DataFrame(columns=['id', 'name', 'role']).to_csv('data/staff.csv', index=False)
 
 if not os.path.exists('data/shifts.csv'):
-    pd.DataFrame(columns=['date', 'staff_id', 'shift_type']).to_csv('data/shifts.csv', index=False)
+    pd.DataFrame(columns=['date', 'staff_id', 'shift_type', 'location']).to_csv('data/shifts.csv', index=False)
 
 def main():
     st.title("📅 Staff Roster Management")
@@ -64,8 +64,11 @@ def show_weekly_schedule():
         for date in week_dates:
             date_str = date.strftime('%Y-%m-%d')
             shift = shifts_df[(shifts_df['staff_id'] == staff.id) & 
-                            (shifts_df['date'] == date_str)]['shift_type'].values
-            row.append(shift[0] if len(shift) > 0 else "")
+                            (shifts_df['date'] == date_str)]
+            if not shift.empty:
+                row.append(f"{shift['shift_type'].iloc[0]} ({shift['location'].iloc[0]})")
+            else:
+                row.append("")
         schedule_table.append(row)
 
     # Display schedule
@@ -78,7 +81,7 @@ def show_weekly_schedule():
     # Add new shift
     st.subheader("Add Shift")
     with st.form("add_shift"):
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             selected_staff = st.selectbox("Select Staff", 
                                         options=staff_df['name'].tolist(),
@@ -91,12 +94,18 @@ def show_weekly_schedule():
             shift_type = st.selectbox("Shift Type", 
                                     options=["Morning", "Afternoon", "Night"],
                                     key="shift_select")
+        with col4:
+            location = st.selectbox("Location",
+                                  options=["Reception desk 1", "Reception desk 2", 
+                                          "A-Team Office", "Morning Tea break",
+                                          "Lunch", "Reception backup"],
+                                  key="location_select")
 
         if st.form_submit_button("Add Shift"):
             staff_id = staff_df[staff_df['name'] == selected_staff]['id'].iloc[0]
-            utils.add_shift(staff_id, selected_date, shift_type)
-            st.success("Shift added successfully!")
-            st.rerun()
+            if utils.add_shift(staff_id, selected_date, shift_type, location):
+                st.success("Shift added successfully!")
+                st.rerun()
 
     # Export button
     if st.button("Export Schedule"):
