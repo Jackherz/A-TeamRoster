@@ -19,21 +19,27 @@ def add_staff(name, role):
     staff_df = pd.concat([staff_df, new_staff], ignore_index=True)
     staff_df.to_csv('data/staff.csv', index=False)
 
+def update_staff_role(staff_id, new_role):
+    """Update the role of an existing staff member."""
+    staff_df = pd.read_csv('data/staff.csv')
+    staff_df.loc[staff_df['id'] == staff_id, 'role'] = new_role
+    staff_df.to_csv('data/staff.csv', index=False)
+
 def add_shift(staff_id, date, shift_type):
     """Add a new shift to the shifts.csv file."""
     shifts_df = pd.read_csv('data/shifts.csv')
-    
+
     # Check for conflicts
     date_str = date.strftime('%Y-%m-%d')
     existing_shifts = shifts_df[
         (shifts_df['staff_id'] == staff_id) & 
         (shifts_df['date'] == date_str)
     ]
-    
+
     if not existing_shifts.empty:
         st.error("This staff member already has a shift on this date!")
         return False
-    
+
     # Add new shift
     new_shift = pd.DataFrame([{
         'date': date_str,
@@ -48,7 +54,7 @@ def export_schedule(week_dates):
     """Export the schedule for the given week to a CSV file."""
     staff_df = pd.read_csv('data/staff.csv')
     shifts_df = pd.read_csv('data/shifts.csv')
-    
+
     # Create export dataframe
     export_data = []
     for staff in staff_df.itertuples():
@@ -59,7 +65,7 @@ def export_schedule(week_dates):
                             (shifts_df['date'] == date_str)]['shift_type'].values
             row[date_str] = shift[0] if len(shift) > 0 else "Off"
         export_data.append(row)
-    
+
     export_df = pd.DataFrame(export_data)
     export_filename = f"schedule_export_{week_dates[0].strftime('%Y%m%d')}.csv"
     export_df.to_csv(export_filename, index=False)

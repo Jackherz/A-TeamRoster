@@ -27,11 +27,11 @@ if not os.path.exists('data/shifts.csv'):
 
 def main():
     st.title("📅 Staff Roster Management")
-    
+
     # Sidebar navigation
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Go to", ["Weekly Schedule", "Staff Management"])
-    
+
     if page == "Weekly Schedule":
         show_weekly_schedule()
     else:
@@ -53,10 +53,10 @@ def show_weekly_schedule():
     week_dates = utils.get_week_dates(st.session_state.current_week)
     staff_df = pd.read_csv('data/staff.csv')
     shifts_df = pd.read_csv('data/shifts.csv')
-    
+
     # Schedule display
     st.subheader("Weekly Schedule")
-    
+
     # Create schedule table
     schedule_table = []
     for staff in staff_df.itertuples():
@@ -91,7 +91,7 @@ def show_weekly_schedule():
             shift_type = st.selectbox("Shift Type", 
                                     options=["Morning", "Afternoon", "Night"],
                                     key="shift_select")
-        
+
         if st.form_submit_button("Add Shift"):
             staff_id = staff_df[staff_df['name'] == selected_staff]['id'].iloc[0]
             utils.add_shift(staff_id, selected_date, shift_type)
@@ -105,11 +105,29 @@ def show_weekly_schedule():
 
 def show_staff_management():
     st.subheader("Staff Management")
-    
-    # Display current staff
+
+    # Display current staff with edit functionality
     staff_df = pd.read_csv('data/staff.csv')
-    st.dataframe(staff_df[['name', 'role']], use_container_width=True)
-    
+
+    # Create columns for each staff member's details
+    for idx, staff in staff_df.iterrows():
+        col1, col2, col3 = st.columns([2, 2, 1])
+        with col1:
+            st.write(f"**Name:** {staff['name']}")
+        with col2:
+            new_role = st.selectbox(
+                "Role",
+                options=["Manager", "Senior Staff", "Junior Staff", "Supported Employee"],
+                key=f"role_{staff['id']}",
+                index=["Manager", "Senior Staff", "Junior Staff", "Supported Employee"].index(staff['role'])
+            )
+        with col3:
+            if st.button("Update Role", key=f"update_{staff['id']}"):
+                utils.update_staff_role(staff['id'], new_role)
+                st.success(f"Updated role for {staff['name']}")
+                st.rerun()
+        st.divider()
+
     # Add new staff
     st.subheader("Add New Staff")
     with st.form("add_staff"):
@@ -118,7 +136,7 @@ def show_staff_management():
             new_name = st.text_input("Name")
         with col2:
             new_role = st.selectbox("Role", ["Manager", "Senior Staff", "Junior Staff", "Supported Employee"])
-        
+
         if st.form_submit_button("Add Staff"):
             utils.add_staff(new_name, new_role)
             st.success("Staff member added successfully!")
