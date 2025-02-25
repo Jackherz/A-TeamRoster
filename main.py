@@ -111,7 +111,7 @@ def show_staff_management():
 
     # Create columns for each staff member's details
     for idx, staff in staff_df.iterrows():
-        col1, col2, col3 = st.columns([2, 2, 1])
+        col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
         with col1:
             st.write(f"**Name:** {staff['name']}")
         with col2:
@@ -125,6 +125,11 @@ def show_staff_management():
             if st.button("Update Role", key=f"update_{staff['id']}"):
                 utils.update_staff_role(staff['id'], new_role)
                 st.success(f"Updated role for {staff['name']}")
+                st.rerun()
+        with col4:
+            if st.button("🗑️ Remove", key=f"remove_{staff['id']}", type="secondary"):
+                utils.remove_staff(staff['id'])
+                st.success(f"Removed {staff['name']}")
                 st.rerun()
         st.divider()
 

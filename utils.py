@@ -25,6 +25,18 @@ def update_staff_role(staff_id, new_role):
     staff_df.loc[staff_df['id'] == staff_id, 'role'] = new_role
     staff_df.to_csv('data/staff.csv', index=False)
 
+def remove_staff(staff_id):
+    """Remove a staff member and their associated shifts."""
+    # Remove from staff.csv
+    staff_df = pd.read_csv('data/staff.csv')
+    staff_df = staff_df[staff_df['id'] != staff_id]
+    staff_df.to_csv('data/staff.csv', index=False)
+
+    # Remove associated shifts
+    shifts_df = pd.read_csv('data/shifts.csv')
+    shifts_df = shifts_df[shifts_df['staff_id'] != staff_id]
+    shifts_df.to_csv('data/shifts.csv', index=False)
+
 def add_shift(staff_id, date, shift_type):
     """Add a new shift to the shifts.csv file."""
     shifts_df = pd.read_csv('data/shifts.csv')
