@@ -96,3 +96,10 @@ def export_schedule(week_dates):
     export_df = pd.DataFrame(export_data)
     export_filename = f"schedule_export_{week_dates[0].strftime('%Y%m%d')}.csv"
     export_df.to_csv(export_filename, index=False)
+def remove_shift(staff_id, date, location):
+    """Remove a shift for a specific staff member on a specific date and location."""
+    shifts_df = pd.read_csv('data/shifts.csv')
+    shifts_df = shifts_df[~((shifts_df['staff_id'] == staff_id) & 
+                           (shifts_df['date'] == date) &
+                           (shifts_df['location'] == location))]
+    shifts_df.to_csv('data/shifts.csv', index=False)
