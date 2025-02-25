@@ -67,44 +67,42 @@ def show_daily_schedule():
     current_date_str = st.session_state.current_date.strftime('%Y-%m-%d')
     day_shifts = shifts_df[shifts_df['date'] == current_date_str]
 
-    # Create schedule table
+    # Create schedule table with staff as columns and locations as rows
     schedule_data = []
     for location in locations:
         row = {'Location': location}
         for staff in staff_df.itertuples():
-            # Get all shifts for this staff and location
-            staff_shifts = day_shifts[(day_shifts['staff_id'] == staff.id) & 
-                                    (day_shifts['location'] == location)]
-            
-            # Initialize AM and PM shifts
-            am_shift = ""
-            pm_shift = ""
-            
-            # Populate AM and PM shifts
-            for _, shift in staff_shifts.iterrows():
-                shift_time = shift['shift_type']
-                start_hour = int(shift_time.split('-')[0].split(':')[0])
-                if start_hour < 12:  # Before noon
-                    am_shift = shift_time
-                else:  # After noon
-                    pm_shift = shift_time
-            
-            # Add AM and PM columns for each staff member
-            row[f"{staff.name} AM"] = am_shift
-            row[f"{staff.name} PM"] = pm_shift
+            shifts = day_shifts[(day_shifts['staff_id'] == staff.id) & 
+                              (day_shifts['location'] == location)]
+            shift_text = ""
+            if not shifts.empty:
+                shift_times = shifts['shift_type'].tolist()
+                shift_text = ", ".join(shift_times)
+            row[staff.name] = shift_text
         schedule_data.append(row)
 
-    # Display schedule table
+    # Create DataFrame and configure display
     schedule_df = pd.DataFrame(schedule_data)
+    
+    # Configure column styling
+    column_config = {
+        "Location": st.column_config.Column(
+            width="medium"
+        )
+    }
+    
+    # Add configuration for staff columns
+    for staff in staff_df.itertuples():
+        column_config[staff.name] = st.column_config.Column(
+            width="medium"
+        )
+    
+    # Display schedule table
     st.dataframe(
         schedule_df,
         use_container_width=True,
         hide_index=True,
-        column_config={
-            "Location": st.column_config.Column(
-                width="medium"
-            )
-        }
+        column_config=column_config
     )
     
     # Display individual shifts with remove buttons
