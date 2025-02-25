@@ -42,7 +42,7 @@ def main():
 def show_weekly_schedule():
     # Get the Monday of current week
     monday = st.session_state.current_date - timedelta(days=st.session_state.current_date.weekday())
-    
+
     # Week navigation
     col1, col2, col3 = st.columns([1,3,1])
     with col1:
@@ -58,10 +58,10 @@ def show_weekly_schedule():
     # Load data
     staff_df = pd.read_csv('data/staff.csv')
     shifts_df = pd.read_csv('data/shifts.csv')
-    
+
     # Create week date range
     week_dates = [monday + timedelta(days=i) for i in range(7)]
-    
+
     # Define locations
     locations = [
         "Reception desk 1",
@@ -89,16 +89,16 @@ def show_weekly_schedule():
                 st.rerun()
             else:
                 st.warning("No shifts to copy for this week")
-    
+
     st.divider()
     # Create tabs for each day
     tabs = st.tabs([date.strftime("%A %d/%m") for date in week_dates])
-    
+
     for i, (tab, date) in enumerate(zip(tabs, week_dates)):
         with tab:
             date_str = date.strftime('%Y-%m-%d')
             day_shifts = shifts_df[shifts_df['date'] == date_str]
-            
+
             # Create schedule table
             schedule_data = []
             for location in locations:
@@ -114,14 +114,14 @@ def show_weekly_schedule():
                 schedule_data.append(row)
 
             schedule_df = pd.DataFrame(schedule_data)
-            
+
             # Configure column styling
             column_config = {
                 "Location": st.column_config.Column(width="medium")
             }
             for staff in staff_df.itertuples():
                 column_config[staff.name] = st.column_config.Column(width="medium")
-            
+
             # Display schedule table
             st.dataframe(
                 schedule_df,
@@ -129,10 +129,10 @@ def show_weekly_schedule():
                 hide_index=True,
                 column_config=column_config
             )
-            
+
             # Add copy functionality
             st.divider()
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3, col4 = st.columns(4)
             with col1:
                 target_date = st.date_input(f"Copy {date.strftime('%A')} schedule to", 
                                           value=date,
@@ -144,6 +144,31 @@ def show_weekly_schedule():
                         st.rerun()
                     else:
                         st.warning("No shifts to copy for this day")
+
+            # Copy specific staff member's shifts
+            st.divider()
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                staff_df = pd.read_csv('data/staff.csv')
+                selected_staff = st.selectbox(
+                    "Copy shifts for staff member",
+                    options=staff_df['name'].tolist(),
+                    key=f"copy_staff_{i}"
+                )
+                staff_id = staff_df[staff_df['name'] == selected_staff]['id'].iloc[0]
+            with col2:
+                target_date = st.date_input(
+                    "to date",
+                    value=date + timedelta(days=7),
+                    key=f"copy_staff_date_{i}"
+                )
+            with col3:
+                if st.button("Copy Staff Schedule", key=f"copy_staff_btn_{i}"):
+                    if utils.copy_staff_shifts(staff_id, date, target_date):
+                        st.success(f"Copied {selected_staff}'s schedule to {target_date.strftime('%Y-%m-%d')}")
+                        st.rerun()
+                    else:
+                        st.warning(f"No shifts to copy for {selected_staff} on this day")
 
 def show_daily_schedule():
     # Date navigation
@@ -191,20 +216,20 @@ def show_daily_schedule():
 
     # Create DataFrame and configure display
     schedule_df = pd.DataFrame(schedule_data)
-    
+
     # Configure column styling
     column_config = {
         "Location": st.column_config.Column(
             width="medium"
         )
     }
-    
+
     # Add configuration for staff columns
     for staff in staff_df.itertuples():
         column_config[staff.name] = st.column_config.Column(
             width="medium"
         )
-    
+
     # Display schedule table
     st.dataframe(
         schedule_df,
@@ -212,7 +237,7 @@ def show_daily_schedule():
         hide_index=True,
         column_config=column_config
     )
-    
+
     # Display individual shifts with remove buttons
     st.subheader("Current Shifts")
     for location in locations:
