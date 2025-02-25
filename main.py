@@ -84,7 +84,7 @@ def show_daily_schedule():
     # Add new shift
     st.subheader("Add Shift")
     with st.form("add_shift"):
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
             selected_staff = st.selectbox("Select Staff", 
                                         options=staff_df['name'].tolist(),
@@ -94,30 +94,37 @@ def show_daily_schedule():
                                         value=st.session_state.current_date,
                                         key="date_select")
         with col3:
-            shift_type = st.selectbox(
-                "Time Slot",
-                options=[
-                    "08:00-12:00",
-                    "08:30-12:00",
-                    "09:00-12:00",
-                    "10:30-10:45",  # Morning tea
-                    "12:00-12:30",  # Lunch
-                    "12:30-17:00",
-                    "13:00-17:00",
-                    "13:30-17:00"
-                ],
-                key="shift_select"
-            )
+            start_time = st.time_input("Start Time", 
+                                     value=datetime.strptime("08:00", "%H:%M").time(),
+                                     step=300)  # 5-minute intervals
         with col4:
+            end_time = st.time_input("End Time",
+                                   value=datetime.strptime("12:00", "%H:%M").time(),
+                                   step=300)  # 5-minute intervals
+        with col5:
             location = st.selectbox("Location",
                                   options=locations,
                                   key="location_select")
 
+        # Validate time inputs
         if st.form_submit_button("Add Shift"):
-            staff_id = staff_df[staff_df['name'] == selected_staff]['id'].iloc[0]
-            if utils.add_shift(staff_id, selected_date, shift_type, location):
-                st.success("Shift added successfully!")
-                st.rerun()
+            # Convert times to 24-hour format strings
+            start_str = start_time.strftime("%H:%M")
+            end_str = end_time.strftime("%H:%M")
+
+            # Validate time range
+            if start_time < datetime.strptime("08:00", "%H:%M").time():
+                st.error("Start time cannot be earlier than 08:00")
+            elif end_time > datetime.strptime("17:00", "%H:%M").time():
+                st.error("End time cannot be later than 17:00")
+            elif end_time <= start_time:
+                st.error("End time must be after start time")
+            else:
+                shift_type = f"{start_str}-{end_str}"
+                staff_id = staff_df[staff_df['name'] == selected_staff]['id'].iloc[0]
+                if utils.add_shift(staff_id, selected_date, shift_type, location):
+                    st.success("Shift added successfully!")
+                    st.rerun()
 
     # Export button
     if st.button("Export Schedule"):
