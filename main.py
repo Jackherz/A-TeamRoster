@@ -146,7 +146,7 @@ def show_staff_management():
             new_role = st.selectbox(
                 "Role",
                 options=["Manager", "Senior Staff", "Junior Staff", "Supported Employee", "Admin Assistant"],
-                key=f"role_{staff['id']}",
+                key=f"role_{staff['id']}_{idx}",
                 index=["Manager", "Senior Staff", "Junior Staff", "Supported Employee", "Admin Assistant"].index(staff['role'])
             )
         with col3:
