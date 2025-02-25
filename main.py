@@ -89,7 +89,7 @@ def show_daily_schedule():
             # Add AM and PM columns for each staff member
             row[f"{staff.name} (AM)"] = am_shift
             row[f"{staff.name} (PM)"] = pm_shift
-        schedule_data.append(row)ppend(row)
+        schedule_data.append(row)
 
     # Display schedule table
     schedule_df = pd.DataFrame(schedule_data)
