@@ -94,9 +94,20 @@ def show_daily_schedule():
                                         value=st.session_state.current_date,
                                         key="date_select")
         with col3:
-            shift_type = st.selectbox("Shift Type", 
-                                    options=["Morning", "Afternoon", "Night"],
-                                    key="shift_select")
+            shift_type = st.selectbox(
+                "Time Slot",
+                options=[
+                    "08:00-12:00",
+                    "08:30-12:00",
+                    "09:00-12:00",
+                    "10:30-10:45",  # Morning tea
+                    "12:00-12:30",  # Lunch
+                    "12:30-17:00",
+                    "13:00-17:00",
+                    "13:30-17:00"
+                ],
+                key="shift_select"
+            )
         with col4:
             location = st.selectbox("Location",
                                   options=locations,
