@@ -76,7 +76,7 @@ def show_daily_schedule():
             staff_shifts = day_shifts[(day_shifts['staff_id'] == staff.id) & 
                                     (day_shifts['location'] == location)]
             
-            # Initialize AM and PM columns
+            # Initialize AM and PM shifts
             am_shift = ""
             pm_shift = ""
             
@@ -90,13 +90,22 @@ def show_daily_schedule():
                     pm_shift = shift_time
             
             # Add AM and PM columns for each staff member
-            row[f"{staff.name} (AM)"] = am_shift
-            row[f"{staff.name} (PM)"] = pm_shift
+            row[f"{staff.name} AM"] = am_shift
+            row[f"{staff.name} PM"] = pm_shift
         schedule_data.append(row)
 
     # Display schedule table
     schedule_df = pd.DataFrame(schedule_data)
-    st.dataframe(schedule_df, use_container_width=True)
+    st.dataframe(
+        schedule_df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Location": st.column_config.Column(
+                width="medium"
+            )
+        }
+    )
     
     # Display individual shifts with remove buttons
     st.subheader("Current Shifts")
