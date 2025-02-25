@@ -72,23 +72,15 @@ def show_daily_schedule():
     for location in locations:
         row = {'Location': location}
         for staff in staff_df.itertuples():
-            # Get all shifts for this staff and location
-            staff_shifts = day_shifts[(day_shifts['staff_id'] == staff.id) & 
-                                    (day_shifts['location'] == location)]
-            
-            # Split into AM and PM shifts
-            am_shift = ""
-            pm_shift = ""
-            for _, shift in staff_shifts.iterrows():
-                shift_start = shift['shift_type'].split('-')[0]
-                if int(shift_start.split(':')[0]) < 12:
-                    am_shift = shift['shift_type']
-                else:
-                    pm_shift = shift['shift_type']
-            
-            # Add AM and PM columns for each staff member
-            row[f"{staff.name} (AM)"] = am_shift
-            row[f"{staff.name} (PM)"] = pm_shift
+            shift = day_shifts[(day_shifts['staff_id'] == staff.id) & 
+                             (day_shifts['location'] == location)]
+            if not shift.empty:
+                shift_time = shift['shift_type'].iloc[0]
+                shift_start = shift_time.split('-')[0]
+                column_name = f"{staff.name}"
+                row[column_name] = shift_time if shift_time else ""
+            else:
+                row[f"{staff.name}"] = ""
         schedule_data.append(row)
 
     # Display schedule table
