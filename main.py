@@ -30,12 +30,101 @@ def main():
 
     # Sidebar navigation
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", ["Daily Schedule", "Staff Management"])
+    page = st.sidebar.radio("Go to", ["Daily Schedule", "Weekly View", "Staff Management"])
 
     if page == "Daily Schedule":
         show_daily_schedule()
+    elif page == "Weekly View":
+        show_weekly_schedule()
     else:
         show_staff_management()
+
+def show_weekly_schedule():
+    # Get the Monday of current week
+    monday = st.session_state.current_date - timedelta(days=st.session_state.current_date.weekday())
+    
+    # Week navigation
+    col1, col2, col3 = st.columns([1,3,1])
+    with col1:
+        if st.button("← Previous Week"):
+            st.session_state.current_date = monday - timedelta(days=7)
+    with col2:
+        week_end = monday + timedelta(days=6)
+        st.header(f"Week {monday.strftime('%B %d')} - {week_end.strftime('%B %d, %Y')}")
+    with col3:
+        if st.button("Next Week →"):
+            st.session_state.current_date = monday + timedelta(days=7)
+
+    # Load data
+    staff_df = pd.read_csv('data/staff.csv')
+    shifts_df = pd.read_csv('data/shifts.csv')
+    
+    # Create week date range
+    week_dates = [monday + timedelta(days=i) for i in range(7)]
+    
+    # Define locations
+    locations = [
+        "Reception desk 1",
+        "Reception desk 2",
+        "A-Team Office",
+        "Morning Tea break",
+        "Lunch",
+        "Reception backup"
+    ]
+
+    # Create tabs for each day
+    tabs = st.tabs([date.strftime("%A %d/%m") for date in week_dates])
+    
+    for i, (tab, date) in enumerate(zip(tabs, week_dates)):
+        with tab:
+            date_str = date.strftime('%Y-%m-%d')
+            day_shifts = shifts_df[shifts_df['date'] == date_str]
+            
+            # Create schedule table
+            schedule_data = []
+            for location in locations:
+                row = {'Location': location}
+                for staff in staff_df.itertuples():
+                    shifts = day_shifts[(day_shifts['staff_id'] == staff.id) & 
+                                      (day_shifts['location'] == location)]
+                    shift_text = ""
+                    if not shifts.empty:
+                        shift_times = shifts['shift_type'].tolist()
+                        shift_text = ", ".join(shift_times)
+                    row[staff.name] = shift_text
+                schedule_data.append(row)
+
+            schedule_df = pd.DataFrame(schedule_data)
+            
+            # Configure column styling
+            column_config = {
+                "Location": st.column_config.Column(width="medium")
+            }
+            for staff in staff_df.itertuples():
+                column_config[staff.name] = st.column_config.Column(width="medium")
+            
+            # Display schedule table
+            st.dataframe(
+                schedule_df,
+                use_container_width=True,
+                hide_index=True,
+                column_config=column_config
+            )
+            
+            # Add copy functionality
+            st.divider()
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                target_date = st.date_input(f"Copy {date.strftime('%A')} schedule to", 
+                                          value=date,
+                                          key=f"copy_date_{i}")
+            with col2:
+                if st.button("Copy Schedule", key=f"copy_btn_{i}"):
+                    if utils.copy_day_shifts(date, target_date):
+                        st.success(f"Copied schedule to {target_date.strftime('%Y-%m-%d')}")
+                        st.rerun()
+                    else:
+                        st.warning("No shifts to copy for this day")
 
 def show_daily_schedule():
     # Date navigation

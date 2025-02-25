@@ -116,3 +116,25 @@ def remove_shift(staff_id, date, location):
                            (shifts_df['date'] == date) &
                            (shifts_df['location'] == location))]
     shifts_df.to_csv('data/shifts.csv', index=False)
+
+def copy_day_shifts(source_date, target_date):
+    """Copy all shifts from source date to target date."""
+    shifts_df = pd.read_csv('data/shifts.csv')
+    source_date_str = source_date.strftime('%Y-%m-%d')
+    target_date_str = target_date.strftime('%Y-%m-%d')
+    
+    # Get shifts for source date
+    source_shifts = shifts_df[shifts_df['date'] == source_date_str].copy()
+    
+    if not source_shifts.empty:
+        # Update the date for the new shifts
+        source_shifts['date'] = target_date_str
+        
+        # Remove any existing shifts in the target date
+        shifts_df = shifts_df[shifts_df['date'] != target_date_str]
+        
+        # Add the copied shifts
+        shifts_df = pd.concat([shifts_df, source_shifts], ignore_index=True)
+        shifts_df.to_csv('data/shifts.csv', index=False)
+        return True
+    return False
