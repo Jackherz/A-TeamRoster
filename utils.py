@@ -63,10 +63,14 @@ def add_shift(staff_id, date, shift_type, location):
         st.error("This location is already assigned to another staff member for this time slot!")
         return False
 
+    # Get correct staff ID from name
+    staff_df = pd.read_csv('data/staff.csv')
+    correct_staff_id = staff_df[staff_df['id'] == staff_id]['id'].iloc[0]
+    
     # Add new shift
     new_shift = pd.DataFrame([{
         'date': date_str,
-        'staff_id': staff_id,
+        'staff_id': correct_staff_id,
         'shift_type': shift_type,
         'location': location
     }])

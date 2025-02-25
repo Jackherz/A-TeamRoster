@@ -77,7 +77,12 @@ def show_daily_schedule():
             row[staff.name] = shift['shift_type'].iloc[0] if not shift.empty else ""
         schedule_data.append(row)
 
-    # Display schedule with remove buttons
+    # Display schedule table
+    schedule_df = pd.DataFrame(schedule_data)
+    st.dataframe(schedule_df, use_container_width=True)
+    
+    # Display individual shifts with remove buttons
+    st.subheader("Current Shifts")
     for location in locations:
         shifts = day_shifts[day_shifts['location'] == location]
         if not shifts.empty:
