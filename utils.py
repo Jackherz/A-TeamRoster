@@ -44,13 +44,14 @@ def add_shift(staff_id, date, shift_type, location):
     # Check for conflicts
     date_str = date.strftime('%Y-%m-%d')
     
-    # Check if staff already has a shift that day
+    # Check if staff already has a shift at this time
     staff_shifts = shifts_df[
         (shifts_df['staff_id'] == staff_id) & 
-        (shifts_df['date'] == date_str)
+        (shifts_df['date'] == date_str) &
+        (shifts_df['shift_type'] == shift_type)
     ]
     if not staff_shifts.empty:
-        st.error("This staff member already has a shift on this date!")
+        st.error("This staff member already has a shift during this time slot!")
         return False
         
     # Check if location is already occupied
