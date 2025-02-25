@@ -118,7 +118,7 @@ def show_daily_schedule():
                 with col2:
                     st.write(f"**Staff:** {staff_name} ({shift['shift_type']})")
                 with col3:
-                    if st.button("🗑️ Remove Shift", key=f"remove_shift_{shift['staff_id']}_{location}_{current_date_str}"):
+                    if st.button("🗑️ Remove Shift", key=f"remove_shift_{shift['staff_id']}_{location}_{shift['shift_type']}_{current_date_str}"):
                         utils.remove_shift(shift['staff_id'], current_date_str, location)
                         st.success(f"Removed shift for {staff_name}")
                         st.rerun()
